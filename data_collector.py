@@ -32,6 +32,8 @@ def collect_all(client: Union[BinanceClient, FtxClient], exchange: str, symbol: 
         oldest_ts = data[0][0]
         most_recent_ts = data[-1][0]
 
+        h5_db.write_data(symbol, data)
+
     # Most recent data
     while True:
 
