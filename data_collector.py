@@ -3,6 +3,7 @@ import logging
 
 import time
 
+from database import Hdf5Client
 from utils import *
 from exchanges.binance import BinanceClient
 from exchanges.ftx import  FtxClient
@@ -11,6 +12,9 @@ from exchanges.ftx import  FtxClient
 logger = logging.getLogger()
 
 def collect_all(client: Union[BinanceClient, FtxClient], exchange: str, symbol: str):
+
+    h5_db = Hdf5Client(exchange)
+    h5_db.create_dataset(symbol)
 
     oldest_ts, most_recent_ts = None, None
 
