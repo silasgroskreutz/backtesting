@@ -16,7 +16,7 @@ def collect_all(client: Union[BinanceClient, FtxClient], exchange: str, symbol: 
     h5_db = Hdf5Client(exchange)
     h5_db.create_dataset(symbol)
 
-    oldest_ts, most_recent_ts = None, None
+    oldest_ts, most_recent_ts = h5_db.get_first_last_timestamp(symbol)
 
     # Initial Request
 
@@ -53,6 +53,8 @@ def collect_all(client: Union[BinanceClient, FtxClient], exchange: str, symbol: 
             logger.info("%s %s: Collected %s initial data from %s to %s", exchange, symbol, len(data),
                         ms_to_dt(data[0][0]), ms_to_dt(data[-1][0]))
 
+        h5_db.write_data(symbol, data)
+
         time.sleep(1.1)
 
     # Older data
@@ -73,5 +75,7 @@ def collect_all(client: Union[BinanceClient, FtxClient], exchange: str, symbol: 
             oldest_ts = data[0][0]
             logger.info("%s %s: Collected %s older data from %s to %s", exchange, symbol, len(data),
                         ms_to_dt(data[0][0]), ms_to_dt(data[-1][0]))
+
+        h5_db.write_data(symbol, data)
 
         time.sleep(1.1)
