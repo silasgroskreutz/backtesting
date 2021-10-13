@@ -1,8 +1,10 @@
+import time
 from typing import *
 import logging
 
 import h5py
 import numpy as np
+import pandas as pd
 
 
 logger = logging.getLogger()
@@ -43,6 +45,32 @@ class Hdf5Client:
         self.hf[symbol][-data_array.shape[0]:] = data_array
 
         self.hf.flush()
+
+
+    def get_data(self, symbol: str, from_time: int, to_time: int) -> Union[None, pd.DataFrame]:
+
+        start_query = time.time()
+
+        existing_data = self.hf[symbol][:]
+
+        if len(existing_data) == 0:
+            return None
+
+        data = sorted(existing_data, key=lambda x: x[0])
+        data = np.array(data)
+
+        df = pd.DataFrame(data, columns=["timestamp", "open", "high", "low", "close", "volume"])
+        df = df[(df["timestamp"] >= from_time) & (df["timestamp"] >= to_time)]
+
+        df["timestamp"] = pd.to_datetime(df["timestamp"].values.astype(np.int64), unit="ms")
+        df = df.set_index("timestamp", drop=True, inplace=False)
+
+        query_time = round((time.time() - start_query), 2)
+
+        logger.info("Retrieved %s %s data from database in %s seconds", len(df.index), symbol, query_time)
+
+        return df
+
 
     def get_first_last_timestamp(selfself, symbol: str) -> union[Tuple[None, None], Tuple[float, float]]:
 

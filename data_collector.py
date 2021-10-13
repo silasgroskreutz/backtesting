@@ -34,6 +34,8 @@ def collect_all(client: Union[BinanceClient, FtxClient], exchange: str, symbol: 
 
         h5_db.write_data(symbol, data)
 
+    data_to_insert = []
+
     # Most recent data
     while True:
 
@@ -48,16 +50,24 @@ def collect_all(client: Union[BinanceClient, FtxClient], exchange: str, symbol: 
 
         data = data[:-1]
 
+        data_to_insert = data_to_insert + data
+
+        if len(data_to_insert) > 10000:
+            h5_db.write_data(symbol, data_to_insert)
+            data_to_insert.clear()
+
         if data[-1][0] > most_recent_ts:
             most_recent_ts = data[-1][0]
             logger.info("%s %s: Collected %s initial data from %s to %s", exchange, symbol, len(data),
                         ms_to_dt(data[0][0]), ms_to_dt(data[-1][0]))
 
-        h5_db.write_data(symbol, data)
-
         time.sleep(1.1)
 
+    h5_db.write_data(symbol, data_to_insert)
+    data_to_insert.clear()
+
     # Older data
+
     while True:
 
         data = client.get_historical_data(symbol, end_time=int(oldest_ts + 60000))
@@ -70,12 +80,17 @@ def collect_all(client: Union[BinanceClient, FtxClient], exchange: str, symbol: 
             logger.info("%s %s: Stopped older data collection because no data was found before %s", exchange, symbol, ms_to_dt(oldest_ts))
             break
 
+        data_to_insert = data_to_insert + data
+
+        if len(data_to_insert) > 10000:
+            h5_db.write_data(symbol, data_to_insert)
+            data_to_insert.clear()
 
         if data[0][0] < oldest_ts:
             oldest_ts = data[0][0]
             logger.info("%s %s: Collected %s older data from %s to %s", exchange, symbol, len(data),
                         ms_to_dt(data[0][0]), ms_to_dt(data[-1][0]))
 
-        h5_db.write_data(symbol, data)
-
         time.sleep(1.1)
+
+    h5_db.write_data(symbol, data_to_insert)
