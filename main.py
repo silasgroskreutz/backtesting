@@ -66,7 +66,7 @@ if __name__ == "__main__":
         # FROM
 
         while True:
-            from_time = input("Backtest from (yyyy-mm-dd or Press Enter")
+            from_time = input("Backtest from (yyyy-mm-dd or Press Enter):")
             if from_time == "":
                 from_time = 0
                 break
