@@ -13,6 +13,10 @@ def backtest(df: pd.dataframe, min_points: int, min_diff_points: int, rounding_n
 
     candle_length = df.iloc[1].name - dfiloc[0].name
 
+    pnl = 0
+    trade_side = 0
+    entry_price = None
+
     df["rounded_high"] = round(df["high"] / rounding_nb) * rounding_nb
     df["rounding_low"] = round(df["low"] / rounding_nb) * rounding_nb
 
@@ -83,7 +87,31 @@ def backtest(df: pd.dataframe, min_points: int, min_diff_points: int, rounding_n
             if len(last_h_l[side]) > 10:
                 last_h_l[side].pop(0)
 
-    mpf.plot(df, type="candle", style="charles", alines=dict(alines=levels["resistances"] + levels["supports"]))
-    plt.show()
+            # Check new trade
 
+            for sup_res in resistance_supports[side]:
+                entry_condition = row["close"] > sup_res["price"] if side == "resistances" else row["close"] < sup_res["price"]
+
+                if entry_condition and not sup_res["broken"]:
+                    sup_res["broken"] = True
+                if trade_side == 0:
+                    entry_price = row["close"]
+                    trade_side = 1 if side == "resistances" else -1
+
+            # Check PNL
+            if trade_side == 1:
+                if row["close"] >= entry_price * (1 + take_profit / 100) or row["close"] <= entry_price * (1 - stop_loss / 100):
+                    pnl =+ (row["close"] / entry_price - 1) * 100
+                    trade_side = 0
+                    entry_price = None
+
+            elif trade_side == -1:
+                if row["close"] >= entry_price * (1 - take_profit / 100) or row["close"] <= entry_price * (1 + stop_loss / 100):
+                    pnl =+ ( entry_price / row["close"] - 1) * 100
+                    trade_side = 0
+                    entry_price = None
+
+    # mpf.plot(df, type="candle", style="charles", alines=dict(alines=levels["resistances"] + levels["supports"]))
+    # plt.show()
+    return pnl
 
