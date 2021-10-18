@@ -13,13 +13,13 @@ pd.set_option("display.width", 1000)
 def backtest(df: pd.DataFrame, min_points: int, min_diff_points: int, rounding_nb: float, take_profit: float,
              stop_loss: float):
 
-    start_time = time.time()
-
     candle_length = df.iloc[1].name - df.iloc[0].name
 
     pnl = 0
+    max_pnl = 0
     trade_side = 0
     entry_price = None
+    max_drawdown = 0
 
     df["rounded_high"] = round(df["high"] / rounding_nb) * rounding_nb
     df["rounded_low"] = round(df["low"] / rounding_nb) * rounding_nb
@@ -128,12 +128,13 @@ def backtest(df: pd.DataFrame, min_points: int, min_diff_points: int, rounding_n
                     trade_side = 0
                     entry_price = None
 
+            max_pnl = max(max_pnl, pnl)
+            max_drawdown = max(max_drawdown, max_pnl - pnl)
+
     # mpf.plot(df, type="candle", style="charles", alines=dict(alines=levels["resistances"] + levels["supports"]))
     # plt.show()
 
-    print("Execution time:", int((time.time() - start_time) * 1000), "ms")
-
-    return pnl
+    return pnl, max_drawdown
 
 
 

@@ -13,6 +13,11 @@ def backtest(df: pd.dataframe, ma_period: int):
     df["signal"] = np.where(df["obv"] > df["obv_ma"], 1, -1)
     df["pnl"] = df["close"].pct_change() * df["signal"].shift(1)
 
+    df["cum_pnl"] = df["pnl"].cumsum()
+    df["max_cum_pnl"] = df["cum_pnl"].cummax()
+    df["drawdown"] = df["max_cum_pnl"] - df["cum_pnl"]
+
+
     # notes on the different functions
     #   rolling() - calculate a moving average
     #   diff() - difference in value between each row
@@ -21,4 +26,4 @@ def backtest(df: pd.dataframe, ma_period: int):
     #   shift() - used here to apply signal to correct row in pandas
 
 
-    return df["pnl"].sum()
+    return df["pnl"].sum(), df["drawdown"].max()
