@@ -25,4 +25,4 @@ def run(exchange: str, symbol: str, strategy: str, tf: str, from_time: int, to_t
         data = h5_db.get_data(symbol, from_time, to_time)
         data = resample_timeframe(data, tf)
 
-        print(strategies.support_resistance.backtest(data, min_points=3, min_diff_points=7, rounding_nb=200, take_profit=3, stop_loss=3))
+        print(strategies.support_resistance.backtest(data, min_points=3, min_diff_points=7, rounding_nb=400, take_profit=3, stop_loss=3))
