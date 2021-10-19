@@ -45,7 +45,7 @@ if __name__ == "__main__":
     if mode == "data":
         collect_all(client, exchange, symbol)
 
-    elif mode == "backtest":
+    elif mode in ["backtest", "optimize"]:
 
         # Strategy
 
@@ -91,6 +91,17 @@ if __name__ == "__main__":
             except ValueError:
                 continue
 
-        print(backtester.run(exchange, symbol, strategy, tf, from_time, to_time))
+        if mode == "backtest":
+            print(backtester.run(exchange, symbol, strategy, tf, from_time, to_time))
+        elif mode == "optimize":
+
+            # Population Size
+
+            while True:
+                try:
+                    pop_size = int(input(f"Choose a population size: "))
+                    break
+                except:
+                    continue
 
 
